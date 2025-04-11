@@ -1,33 +1,46 @@
-extends Area2D
+extends CharacterBody2D
 
-@export var speed = 400 # How fast the player will move (pixels/sec).
-var screen_size # Size of the game window.
+@export var speed = 200
+@export var jump_velocity = -500
+@export var gravity = 1200
 
-func _ready():
-	screen_size = get_viewport_rect().size
+func _physics_process(delta):
+	var velocity = self.velocity
 
-func _process(delta):
-	var velocity = Vector2.ZERO # The player's movement vector.
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += gravity * delta
 
-	if Input.is_action_pressed("move_right"):
-		velocity.x += 1
-	if Input.is_action_pressed("move_left"):
-		velocity.x -= 1
-	if Input.is_action_pressed("move_down"):
-		velocity.y += 1
-	if Input.is_action_pressed("move_up"):
-		velocity.y -= 1
+	# Handle jumping
+	if Input.is_action_just_pressed("ui_up") and is_on_floor():
+		velocity.y = jump_velocity
 
-	# ✅ Flip sprite based on direction
-	if velocity.x != 0:
-		$AnimatedSprite2D.flip_h = velocity.x < 0
+	# Movement
+	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
+	velocity.x = direction * speed
 
-	# ✅ Switch animations
-	if velocity.length() > 0:
-		velocity = velocity.normalized() * speed
-		$AnimatedSprite2D.play("run")
+	# Flip sprite
+	if direction != 0:
+		$AnimatedSprite2D.flip_h = direction < 0
+
+	# Crouching
+	var is_crouching = Input.is_action_pressed("move_down") and is_on_floor()
+
+	# Animations
+	if not is_on_floor():
+		$AnimatedSprite2D.play("jump")
+	elif is_crouching:
+		$AnimatedSprite2D.play("crouch")
 	else:
-		$AnimatedSprite2D.play("idle")
+		if direction != 0:
+			$AnimatedSprite2D.play("run")
+		else:
+			$AnimatedSprite2D.play("idle")
 
-	position += velocity * delta
-	position = position.clamp(Vector2.ZERO, screen_size)
+	# Switch hitboxes (make sure nodes exist!)
+	$Collision_Stand.disabled = is_crouching
+	$Collision_Crouch.disabled = not is_crouching
+
+	# Apply movement
+	self.velocity = velocity
+	move_and_slide()
