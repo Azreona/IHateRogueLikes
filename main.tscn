@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://espnd6mhgkpx"]
+
+[ext_resource type="Script" uid="uid://mndueagxnjx8" path="res://player.gd" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://ce721066dre2m" path="res://player.tscn" id="2_h2yge"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
+size = Vector2(242, 4)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_0xm2m")
+
+[node name="Player" parent="." instance=ExtResource("2_h2yge")]
+
+[node name="Ground" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+position = Vector2(2, 47)
+shape = SubResource("RectangleShape2D_1bvp3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Ground"]
